@@ -1,0 +1,372 @@
+<Essensausgabe3.html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Essensausgabe Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; background: #f3f3f3; margin:0; padding:2em; }
+        h1 { color: #333; text-align: center; }
+
+        /* --- HAUPT-LAYOUT (3 SPALTEN) --- */
+        .grid-container { display: flex; gap: 0em; justify-content: center; }
+        .grid-links { flex: 2; background: #ffe0e0; border-radius: 8px; padding: 1em; box-shadow: 0 2px 4px #bbb; }
+        .grid-mitte { flex: 4; background: #fffacd; border-radius: 8px; padding: 1em; box-shadow: 0 2px 4px #bbb; }
+        .grid-rechts { flex: 2; background: #fff; border-radius: 8px; padding: 1em; box-shadow: 0 2px 4px #bbb; }
+        .grid-rechts h2 { text-align: center; margin-top: 0; }
+
+        /* --- SPEISEN/GETRÄNKE GRID --- */
+        .speisen-grid, .getraenke-grid { display: flex; flex-wrap: wrap; gap: 1em; justify-content: center; }
+        .speisen-btn { width: 48%; min-width: 150px; box-sizing: border-box; }
+        .getraenk-btn { width: 23%; min-width: 130px; box-sizing: border-box; }
+
+        /* --- BUTTONS (SPEISEN/GETRÄNKE) --- */
+        .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 140px;
+            max-width: 150px;
+            margin: 0.3em auto; /* Abstand reduziert */
+            padding: 0.3em;
+            font-size: 0.6em;
+            background: #1295e0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 3px #ccc;
+            cursor: pointer;
+            position: relative;
+        }
+        .btn-selected { background: #31e012; color: #fff; }
+        .btn:active, .btn-selected:active { background: #0d6614; }
+        .btn img { width: 100px; height: 100px; border-radius: 5px;  object-fit: cover; align-items:center; }
+        .btn-text { flex: 1; text-align: center; }
+        .btn-count {
+            background: #fff; color: #333; border-radius: 50%; width: 25px; height: 25px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
+            font-size: 0.9em; position: absolute; top: -5px; right: -5px;
+        }
+
+        /* --- CHECKOUT LAYOUT --- */
+        .grid-rechts { 
+            display: flex; 
+            flex-direction: column; /* Stellt sicher, dass die gesamte rechte Spalte vertikal flexibel ist */
+            min-height: 400px; /* Beispielhöhe, damit flex-start sichtbar wird */
+        }
+        
+        #grid-rechts-inner {
+            display: flex;
+            align-items: flex-start; /* Elemente bündig oben ausrichten */
+            gap: 1em;
+            flex-grow: 1; /* Lässt den inneren Wrapper den Platz ausfüllen */
+        }
+
+        /* --- WARENKORB (#order-list) --- */
+        #order-list {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1em; /* Padding wiederhergestellt für Inhalt */
+            box-shadow: 0 2px 4px #bbb;
+            flex: 2; /* Nimmt 2 Teile der Breite ein */
+            margin: 0; /* Alte Zentrierungs-Margins entfernt */
+            max-width: none; /* Breiten-Limit entfernt */
+        }
+        .entry-speise {background-color: #ffe0e0; /* Helles Rosa für Speisen */
+        }
+        .entry-getraenk {background-color: #fffacd; /* Helles Gelb für Getränke (z.B. Lemon Chiffon) */
+        }
+        .entry { display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; padding: 0.3em 0; margin-bottom: 2px;}
+        .entry:last-child { border: none; }
+        .total { font-weight: bold; font-size: 1.1em; display: flex; justify-content: space-between; margin-top: 1em; }
+        .quantity { margin-left: 10px; color: #666; }
+
+        /* --- AKTIONEN/DYNAMISCHE BUTTONS (#action-buttons) --- */
+        .actions { 
+            flex: 1; /* Nimmt 1 Teil der Breite ein */
+            display: flex;
+            flex-direction: column; /* Buttons untereinander */
+            align-items: center;
+            text-align: left; 
+            margin: 0.5em 0; /* Abstand zum Warenkorb reduziert */
+        }
+        .butn { 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            width: auto;
+            max-width: 250px;
+            margin: 0.3em auto; /* Abstand zwischen Buttons reduziert */
+            padding: 1em;
+            font-size: 0.9em;
+            background: #1295e0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 3px #ccc;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* --- NACHRICHT --- */
+        #msg { margin-top: 2em; text-align: center; color: green; }
+
+        /* --- RESPONSIVE ANPASSUNGEN --- */
+        @media (max-width: 800px) {
+            .grid-container { flex-direction: column; gap: 1em; }
+            .getraenk-btn, .speisen-btn { min-width: 120px; }
+            #grid-rechts-inner { flex-direction: column; } /* Stapelt Warenkorb & Buttons unter 800px */
+            #order-list { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Essensausgabe Tracker</h1>
+    <div class="grid-container">
+        
+        <div class="grid-links">
+            <h2>Speisen</h2>
+            <div class="speisen-grid" id="speisen"></div>
+        </div>
+        
+        <div class="grid-mitte">
+            <h2>Getränke</h2>
+            <div class="getraenke-grid" id="getraenke"></div>
+        </div>
+        
+        <div class="grid-rechts">
+            <h2>Checkout</h2>
+            <div id="grid-rechts-inner"> <div id="order-list" style="display:none;">
+                    <h2>Warenkorb</h2>
+                    <div id="order-entries"></div>
+                    <div class="total"><span>Gesamt:</span> <span id="order-total"></span></div>
+                </div>
+                
+                <div class="actions" style="display:none;" id="action-buttons">
+                    <button class="butn" id="ok-btn">OK - Bestellung abschicken</button>
+                    <button class="butn" style="background:#f00" id="abbruch-btn">Abbruch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="msg"></div>
+
+    <script>
+        const SPEISEN = [
+            { name: "Fleischkäse mit Kartoffelsalat", preis: 5.00, bild: "https://img.blick.ch/incoming/3970179-v5-thinkstockphotos-176899096.jpg?imdensity=1&ratio=free&x=0&y=0&width=1500&height=1014&imwidth=632" },
+            { name: "Fleischkäsebrötchen", preis: 4.00, bild: "https://media.istockphoto.com/id/1685955268/de/foto/gebackene-feine-hackbratenscheiben-im-br%C3%B6tchen-fleischk%C3%A4se-isoliert.jpg?s=2048x2048&w=is&k=20&c=isNedJe6PP8ujiYGu6nYjjVdE3dW8yNKRivBrMNqb78=" },
+            { name: "Obatzter mit Brezel", preis: 3.00, bild: "https://www.molkerei-weihenstephan.de/fileadmin/media/rezepte/salate_dips/obazda/obazda_quer.jpg" },
+            { name: "Weißwürste mit Brezel", preis: 3.00, bild: "https://media.istockphoto.com/id/177010534/de/foto/bayerische-wei%C3%9Fe-w%C3%BCrstchen.jpg?s=2048x2048&w=is&k=20&c=9uNji7_Nur_rKTWnm4NxPmQaGc3NtPrnEFJrIfr_dEo=" },
+            { name: "Brezel", preis: 1.00, bild: "https://media.istockphoto.com/id/1497603277/de/foto/brezeln-isoliert-auf-weiss.jpg?s=2048x2048&w=is&k=20&c=kEKZhrMoA4SYHEI1cirGp3uuMrsZour7i3XYvY-EubI=" },
+            { name: "Knabbersachen (Chips, Salzstangen, Erdnüsse)", preis: 1.00, bild: "https://media.istockphoto.com/id/961448398/de/foto/draufsicht-der-verschiedenen-junk-food-und-snacks-auf-holztisch.jpg?s=2048x2048&w=is&k=20&c=VCCzhljh8fy_gqsxI6NhU8zJHpJ7iVwZ_QsLV0ZIOD0=" }
+        ];
+
+        const GETRAENKE = [
+            { name: "Bier (Maß)", preis: 10.00, bild: "https://media01.stockfood.com/largepreviews/MjY1MzQ3NjA=/00855960-Eine-Mass-Bier-mit-Schaumkrone.jpg" },
+            { name: "Bier (0,4l)", preis: 4.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/cec04b/d8c134/f4616d/fb0a2f/fd7cea/8a/cec04bd8c134f4616dfb0a2ffd7cea8a.jpeg" },
+            { name: "Sekt (0,1l)", preis: 2.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/15985a/f2f1c8/16cc01/262edf/58f908/27/15985af2f1c816cc01262edf58f90827.jpeg" },
+            { name: "Sekt (Flasche)", preis: 12.00, bild: "https://www.vinoseleccion.de/media/catalog/product/cache/6/image/9df78eab33525d08d6e5fb8d27136e95/c/a/cava-bach-brut-nature.jpg" },
+  	    { name: "Weinschorle (0,4l)", preis: 5.00, bild: "https://heidelmag.de/wp-content/uploads/2018/01/pfaelzer-weinschorle-dubbeglas-weissweinschorle-pfalz.jpg" },
+            { name: "Wasser (Flasche)", preis: 2.00, bild: "https://www.gdb.de/fileadmin/_processed_/5/0/csm_0_7_Glas_RGB_ddae298e82.jpg" },
+            { name: "Softdrinks (0,4l)", preis: 3.00, bild: "https://sbunion.shop/wp-content/uploads/2022/11/CocaColaGruppeNEU.png" },
+            { name: "Apfelschorle (0,4l)", preis: 3.00, bild: "https://cdn-vergleich.welt.de/v2/sites/11/apfelschorle-testsieger.jpeg?d=450x675&q=70" },
+	    { name: "Aperol (Glas)", preis: 5.00, bild: "https://i.otto.de/i/otto/f1541bd7-c1d5-459a-8468-498e47536365?h=520&w=551&sm=clamp&upscale=true&fmt=auto" },            
+	    { name: "Melonenschnaps", preis: 1.00, bild: "https://img.rewe-static.de/7055052/28189028_digital-image.png?imwidth=840&impolicy=pdp" }
+        ];
+
+        const API_URL = "https://script.google.com/macros/s/AKfycbw3MzX6s0FE_kt36r8p0vng4yXdGMTZ-XHFkcJvZsYh726EDUx56nrIv9TN2lW3HbT3/exec";
+        let warenkorb = [];
+
+        // --- BUTTONS ERZEUGEN ---
+        const speisenDiv = document.getElementById('speisen');
+        SPEISEN.forEach((entry, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.id = `speise-btn-${idx}`;
+            btn.innerHTML = `
+                <img src="${entry.bild}" alt="${entry.name}" onerror="this.style.display='none'">
+                <div class="btn-text">
+                    ${entry.name}<br>
+                    <small>${entry.preis.toFixed(2)} €</small>
+                </div>
+                <div class="btn-count" style="display:none;">0</div>
+            `;
+            btn.onclick = () => addProdukt(entry, 'Speise', idx, 'speise');
+            speisenDiv.appendChild(btn);
+        });
+
+        const getraenkeDiv = document.getElementById('getraenke');
+        GETRAENKE.forEach((entry, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn getraenk-btn';
+            btn.id = `getraenk-btn-${idx}`;
+            btn.innerHTML = `
+                <img src="${entry.bild}" alt="${entry.name}" onerror="this.style.display='none'">
+                <div class="btn-text">
+                    ${entry.name}<br>
+                    <small>${entry.preis.toFixed(2)} €</small>
+                </div>
+                <div class="btn-count" style="display:none;">0</div>
+            `;
+            btn.onclick = () => addProdukt(entry, 'Getränk', idx, 'getraenk');
+            getraenkeDiv.appendChild(btn);
+        });
+
+        function addProdukt(entry, typ, idx, btnType) {
+            const existingItem = warenkorb.find(item => item.name === entry.name && item.typ === typ);
+            if (existingItem) {
+                existingItem.anzahl += 1;
+            } else {
+                warenkorb.push({
+                    name: entry.name,
+                    preis: entry.preis,
+                    anzahl: 1,
+                    typ: typ
+                });
+            }
+            renderOrder();
+            updateButtons();
+        }
+
+        function renderOrder() {
+            const orderListDiv = document.getElementById('order-list');
+            const entriesDiv = document.getElementById('order-entries');
+            const totalDiv = document.getElementById('order-total');
+            const actionDiv = document.getElementById('action-buttons');
+            entriesDiv.innerHTML = '';
+            const gesamtpreis = warenkorb.reduce((sum, item) => sum + (item.preis * item.anzahl), 0);
+            totalDiv.innerText = gesamtpreis.toFixed(2) + " €";
+            
+            if (warenkorb.length) {
+                orderListDiv.style.display = "";
+                actionDiv.style.display = "";
+                warenkorb.forEach(item => {
+                    const entryDiv = document.createElement('div');
+            let typKlasse = item.typ.toLowerCase();
+            
+            // WICHTIG: Korrektur für "Getränk" -> "getraenk"
+            if (typKlasse === 'getränk') {
+                typKlasse = 'getraenk'; 
+            }
+
+            entryDiv.className = `entry entry-${typKlasse}`;
+                    entryDiv.innerHTML = `
+                        <span>${item.name} <span class="quantity">x${item.anzahl}</span> <small>(${item.typ})</small></span>
+                        <span>${(item.preis * item.anzahl).toFixed(2)} €</span>
+                    `;
+                    entriesDiv.appendChild(entryDiv);
+                });
+            } else {
+                orderListDiv.style.display = "none";
+                actionDiv.style.display = "none";
+            }
+        }
+
+        function updateButtons() {
+            SPEISEN.forEach((entry, idx) => {
+                const btn = document.getElementById(`speise-btn-${idx}`);
+                const countBadge = btn.querySelector('.btn-count');
+                const warenkorbItem = warenkorb.find(item => item.name === entry.name && item.typ === 'Speise');
+                if (warenkorbItem && warenkorbItem.anzahl > 0) {
+                    countBadge.style.display = "flex";
+                    countBadge.innerText = warenkorbItem.anzahl;
+                    btn.classList.add('btn-selected');
+                } else {
+                    countBadge.style.display = "none";
+                    btn.classList.remove('btn-selected');
+                }
+            });
+            GETRAENKE.forEach((entry, idx) => {
+                const btn = document.getElementById(`getraenk-btn-${idx}`);
+                const countBadge = btn.querySelector('.btn-count');
+                const warenkorbItem = warenkorb.find(item => item.name === entry.name && item.typ === 'Getränk');
+                if (warenkorbItem && warenkorbItem.anzahl > 0) {
+                    countBadge.style.display = "flex";
+                    countBadge.innerText = warenkorbItem.anzahl;
+                    btn.classList.add('btn-selected');
+                } else {
+                    countBadge.style.display = "none";
+                    btn.classList.remove('btn-selected');
+                }
+            });
+        }
+
+        // --- BESTELLUNG ABSCHICKEN (mit Fehlerkorrektur) ---
+        document.getElementById('ok-btn').onclick = () => {
+            if (!warenkorb.length) return;
+            document.getElementById('msg').innerText = "Bestellung wird gesendet...";
+            const zeitstempel = new Date().toISOString();
+            let erfolgreiche_sends = 0;
+            let gesamt_sends = 0;
+            
+            warenkorb.forEach(item => {
+                for (let i = 0; i < item.anzahl; i++) {
+                    gesamt_sends++;
+                    const data = {
+                        zeitstempel,
+                        speise: item.name,
+                        preis: item.preis,
+                        kategorie: item.typ
+                    };
+                    const formBody = Object.keys(data)
+                        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+                        .join('&');
+                    
+                    fetch(API_URL, {
+                        method: "POST",
+                        body: formBody,
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                    })
+                    .then(response => {
+                        // 1. Prüfen, ob der HTTP-Status OK (200) ist
+                        if (!response.ok) {
+                            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
+                        }
+                        // 2. Parsen als Text, da Google Script oft leere Antworten sendet
+                        return response.text(); 
+                    })
+                    .then(() => {
+                        erfolgreiche_sends++;
+                        
+                        // Prüfen, ob alle Sends erfolgreich abgeschlossen sind
+                        if (erfolgreiche_sends === gesamt_sends) {
+                            document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${gesamt_sends} Einträge)`;
+                            warenkorb = [];
+                            renderOrder();
+                            updateButtons();
+                        }
+                    })
+                    .catch((error) => { 
+                        // Zähler inkrementieren, damit die UI am Ende trotzdem aufgeräumt wird
+                        erfolgreiche_sends++; 
+                        
+                        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
+                        
+                        // Wenn dies die letzte Sendung ist, UI trotzdem aufräumen
+                        if (erfolgreiche_sends === gesamt_sends) {
+                            warenkorb = []; 
+                            renderOrder();
+                            updateButtons();
+                            document.getElementById('msg').innerText += " (Warenkorb geleert)";
+                        }
+                    });
+                }
+            });
+        };
+
+        // --- BESTELLUNG ABBRECHEN ---
+        document.getElementById('abbruch-btn').onclick = () => {
+            warenkorb = [];
+            renderOrder();
+            updateButtons();
+            document.getElementById('msg').innerText = "Bestellung abgebrochen!";
+        };
+
+        renderOrder();
+        updateButtons();
+    </script>
+</body>
+</html>
