@@ -294,68 +294,57 @@
             });
         }
 
-        // --- BESTELLUNG ABSCHICKEN (mit Fehlerkorrektur) ---
-        document.getElementById('ok-btn').onclick = () => {
-            if (!warenkorb.length) return;
-            document.getElementById('msg').innerText = "Bestellung wird gesendet...";
-            const zeitstempel = new Date().toISOString();
-            let erfolgreiche_sends = 0;
-            let gesamt_sends = 0;
-            
-            warenkorb.forEach(item => {
-                for (let i = 0; i < item.anzahl; i++) {
-                    gesamt_sends++;
-                    const data = {
-                        zeitstempel,
-                        speise: item.name,
-                        preis: item.preis,
-                        kategorie: item.typ
-                    };
-                    const formBody = Object.keys(data)
-                        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
-                        .join('&');
-                    
-                    fetch(API_URL, {
-                        method: "POST",
-                        body: formBody,
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-                    })
-                    .then(response => {
-                        // 1. Prüfen, ob der HTTP-Status OK (200) ist
-                        if (!response.ok) {
-                            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
-                        }
-                        // 2. Parsen als Text, da Google Script oft leere Antworten sendet
-                        return response.text(); 
-                    })
-                    .then(() => {
-                        erfolgreiche_sends++;
-                        
-                        // Prüfen, ob alle Sends erfolgreich abgeschlossen sind
-                        if (erfolgreiche_sends === gesamt_sends) {
-                            document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${gesamt_sends} Einträge)`;
-                            warenkorb = [];
-                            renderOrder();
-                            updateButtons();
-                        }
-                    })
-                    .catch((error) => { 
-                        // Zähler inkrementieren, damit die UI am Ende trotzdem aufgeräumt wird
-                        erfolgreiche_sends++; 
-                        
-                        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
-                        
-                        // Wenn dies die letzte Sendung ist, UI trotzdem aufräumen
-                        if (erfolgreiche_sends === gesamt_sends) {
-                            warenkorb = []; 
-                            renderOrder();
-                            updateButtons();
-                            document.getElementById('msg').innerText += " (Warenkorb geleert)";
-                        }
-                    });
-                }
+// --- BESTELLUNG ABSCHICKEN (Optimiert) ---
+document.getElementById('ok-btn').onclick = () => {
+    if (!warenkorb.length) return;
+    document.getElementById('msg').innerText = "Bestellung wird gesendet...";
+
+    const zeitstempel = new Date().toISOString();
+    
+    // Die Daten für die gesamte Bestellung in einem Array zusammenfassen
+    const bestellungen = [];
+    warenkorb.forEach(item => {
+        for (let i = 0; i < item.anzahl; i++) {
+            bestellungen.push({
+                zeitstempel,
+                speise: item.name,
+                preis: item.preis,
+                kategorie: item.typ
             });
-        };
+        }
+    });
+
+    // WICHTIG: Die gesamten Daten als JSON senden, nicht als URL-encoded Form
+    // (Dies erfordert eine Anpassung des Google Scripts!)
+    fetch(API_URL, {
+        method: "POST",
+        // Gesamtes JSON-Array senden
+        body: JSON.stringify(bestellungen), 
+        // Den Content-Type auf JSON setzen
+        headers: { "Content-Type": "application/json" } 
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
+        }
+        return response.text(); 
+    })
+    .then(() => {
+        document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${bestellungen.length} Einträge)`;
+        
+        // Warenkorb sofort nach EINER erfolgreichen Antwort leeren!
+        warenkorb = [];
+        renderOrder();
+        updateButtons();
+    })
+    .catch((error) => { 
+        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
+        // Bei Fehler: Warenkorb im Fehlerfall zur Sicherheit trotzdem leeren (könnte man anders entscheiden)
+        warenkorb = []; 
+        renderOrder();
+        updateButtons();
+    });
+};
 
         // --- BESTELLUNG ABBRECHEN ---
         document.getElementById('abbruch-btn').onclick = () => {
@@ -370,6 +359,7 @@
     </script>
 </body>
 </html>
+
 
 
 
