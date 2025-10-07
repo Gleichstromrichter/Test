@@ -314,37 +314,21 @@ document.getElementById('ok-btn').onclick = () => {
         }
     });
 
-    // WICHTIG: Die gesamten Daten als JSON senden, nicht als URL-encoded Form
-    // (Dies erfordert eine Anpassung des Google Scripts!)
-// NACHHER:
+// NACHHER (Finaler Workaround gegen Pre-flight-Check):
 fetch(API_URL, {
     method: "POST",
-    // Achtung: Den 'headers'-Block komplett entfernen, 
-    // da wir nur den Body und die Methode senden.
-    body: JSON.stringify(bestellungen) 
+    body: JSON.stringify(bestellungen), 
+    // Fügen Sie den Header explizit als text/plain hinzu, um den Pre-flight zu umgehen.
+    headers: { "Content-Type": "text/plain" } 
 })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
-        }
-        return response.text(); 
-    })
-    .then(() => {
-        document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${bestellungen.length} Einträge)`;
-        
-        // Warenkorb sofort nach EINER erfolgreichen Antwort leeren!
-        warenkorb = [];
-        renderOrder();
-        updateButtons();
-    })
-    .catch((error) => { 
-        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
-        // Bei Fehler: Warenkorb im Fehlerfall zur Sicherheit trotzdem leeren (könnte man anders entscheiden)
-        warenkorb = []; 
-        renderOrder();
-        updateButtons();
-    });
-};
+.then(response => {
+    if (!response.ok) {
+        // Fehlerbehandlung beibehalten
+        throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
+    }
+    return response.text(); 
+})
+// ... (restliche Logik)
 
         // --- BESTELLUNG ABBRECHEN ---
         document.getElementById('abbruch-btn').onclick = () => {
@@ -359,6 +343,7 @@ fetch(API_URL, {
     </script>
 </body>
 </html>
+
 
 
 
