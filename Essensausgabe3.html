@@ -41,7 +41,7 @@
         }
         .btn-selected { background: #31e012; color: #fff; }
         .btn:active, .btn-selected:active { background: #0d6614; }
-        .btn img { width: 130px; height: 130px; border-radius: 2px;  object-fit: cover; align-items:center; }
+        .btn img { width: 130px; height: 130px; border-radius: 2px; object-fit: cover; align-items:center; }
         .btn-text { flex: 1; text-align: center; }
         .btn-count {
             background: #fff; color: #333; border-radius: 50%; width: 25px; height: 25px;
@@ -169,7 +169,7 @@
             { name: "Bier (0,4l)", preis: 4.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/cec04b/d8c134/f4616d/fb0a2f/fd7cea/8a/cec04bd8c134f4616dfb0a2ffd7cea8a.jpeg" },
             { name: "Sekt (0,1l)", preis: 2.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/15985a/f2f1c8/16cc01/262edf/58f908/27/15985af2f1c816cc01262edf58f90827.jpeg" },
             { name: "Sekt (Flasche)", preis: 12.00, bild: "https://www.vinoseleccion.de/media/catalog/product/cache/6/image/9df78eab33525d08d6e5fb8d27136e95/c/a/cava-bach-brut-nature.jpg" },
-  	    { name: "Weinschorle (0,4l)", preis: 5.00, bild: "https://heidelmag.de/wp-content/uploads/2018/01/pfaelzer-weinschorle-dubbeglas-weissweinschorle-pfalz.jpg" },
+        	{ name: "Weinschorle (0,4l)", preis: 5.00, bild: "https://heidelmag.de/wp-content/uploads/2018/01/pfaelzer-weinschorle-dubbeglas-weissweinschorle-pfalz.jpg" },
             { name: "Wasser (Flasche)", preis: 2.00, bild: "https://www.gdb.de/fileadmin/_processed_/5/0/csm_0_7_Glas_RGB_ddae298e82.jpg" },
             { name: "Softdrinks (0,4l)", preis: 3.00, bild: "https://sbunion.shop/wp-content/uploads/2022/11/CocaColaGruppeNEU.png" },
             { name: "Apfelschorle (0,4l)", preis: 3.00, bild: "https://cdn-vergleich.welt.de/v2/sites/11/apfelschorle-testsieger.jpeg?d=450x675&q=70" },
@@ -245,14 +245,14 @@
                 actionDiv.style.display = "";
                 warenkorb.forEach(item => {
                     const entryDiv = document.createElement('div');
-            let typKlasse = item.typ.toLowerCase();
-            
-            // WICHTIG: Korrektur für "Getränk" -> "getraenk"
-            if (typKlasse === 'getränk') {
-                typKlasse = 'getraenk'; 
-            }
+                let typKlasse = item.typ.toLowerCase();
+                
+                // WICHTIG: Korrektur für "Getränk" -> "getraenk"
+                if (typKlasse === 'getränk') {
+                    typKlasse = 'getraenk'; 
+                }
 
-            entryDiv.className = `entry entry-${typKlasse}`;
+                entryDiv.className = `entry entry-${typKlasse}`;
                     entryDiv.innerHTML = `
                         <span>${item.name} <span class="quantity">x${item.anzahl}</span> <small>(${item.typ})</small></span>
                         <span>${(item.preis * item.anzahl).toFixed(2)} €</span>
@@ -314,22 +314,37 @@ document.getElementById('ok-btn').onclick = () => {
         }
     });
 
-// NACHHER (Finaler Workaround gegen Pre-flight-Check):
-fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(bestellungen), 
-    // Fügen Sie den Header explizit als text/plain hinzu, um den Pre-flight zu umgehen.
-    headers: { "Content-Type": "text/plain" } 
-})
-.then(response => {
-    if (!response.ok) {
-        // Fehlerbehandlung beibehalten
-        throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
-    }
-    return response.text(); 
-})
-}
-// ... (restliche Logik)
+    // Finaler Workaround gegen Pre-flight-Check: text/plain Header erzwingt eine "Simple Request"
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(bestellungen), 
+        // Fügt den Header explizit als text/plain hinzu, um den Pre-flight zu umgehen.
+        headers: { "Content-Type": "text/plain" } 
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Fehlerbehandlung beibehalten
+            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
+        }
+        // WICHTIG: Erwartet JSON vom Apps Script
+        return response.json(); 
+    })
+    .then(() => {
+        document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${bestellungen.length} Einträge)`;
+        
+        // Warenkorb sofort nach EINER erfolgreichen Antwort leeren!
+        warenkorb = [];
+        renderOrder();
+        updateButtons();
+    })
+    .catch((error) => { 
+        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
+        // Bei Fehler: Warenkorb im Fehlerfall zur Sicherheit trotzdem leeren (könnte man anders entscheiden)
+        warenkorb = []; 
+        renderOrder();
+        updateButtons();
+    });
+};
 
         // --- BESTELLUNG ABBRECHEN ---
         document.getElementById('abbruch-btn').onclick = () => {
@@ -344,6 +359,7 @@ fetch(API_URL, {
     </script>
 </body>
 </html>
+
 
 
 
