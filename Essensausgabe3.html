@@ -177,7 +177,7 @@
 	    { name: "Melonenschnaps", preis: 1.00, bild: "https://img.rewe-static.de/7055052/28189028_digital-image.png?imwidth=840&impolicy=pdp" }
         ];
 
-        const API_URL = "https://script.google.com/macros/s/AKfycbwV9DYQPuhLOBlig3kheesqnKvmU9jAs9rmyL0xssTC5oEbz6KUIpFQy_HLm4E_ZVQDIA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxTQuIZglWTYeggmJWFHvrRk4UQAVY404L2Fd1V2pU8NcR4vvrD7wqkbgveHYZ1-DtY4w/exec";
         let warenkorb = [];
 
         // --- BUTTONS ERZEUGEN ---
@@ -316,13 +316,13 @@ document.getElementById('ok-btn').onclick = () => {
 
     // WICHTIG: Die gesamten Daten als JSON senden, nicht als URL-encoded Form
     // (Dies erfordert eine Anpassung des Google Scripts!)
-    fetch(API_URL, {
-        method: "POST",
-        // Gesamtes JSON-Array senden
-        body: JSON.stringify(bestellungen), 
-        // Den Content-Type auf JSON setzen
-        headers: { "Content-Type": "application/json" } 
-    })
+// NACHHER:
+fetch(API_URL, {
+    method: "POST",
+    // Achtung: Den 'headers'-Block komplett entfernen, 
+    // da wir nur den Body und die Methode senden.
+    body: JSON.stringify(bestellungen) 
+})
     .then(response => {
         if (!response.ok) {
             throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
@@ -359,6 +359,7 @@ document.getElementById('ok-btn').onclick = () => {
     </script>
 </body>
 </html>
+
 
 
 
