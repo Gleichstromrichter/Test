@@ -173,10 +173,11 @@
             { name: "Wasser (Flasche)", preis: 2.00, bild: "https://www.gdb.de/fileadmin/_processed_/5/0/csm_0_7_Glas_RGB_ddae298e82.jpg" },
             { name: "Softdrinks (0,4l)", preis: 3.00, bild: "https://sbunion.shop/wp-content/uploads/2022/11/CocaColaGruppeNEU.png" },
             { name: "Apfelschorle (0,4l)", preis: 3.00, bild: "https://cdn-vergleich.welt.de/v2/sites/11/apfelschorle-testsieger.jpeg?d=450x675&q=70" },
-	    { name: "Aperol (Glas)", preis: 5.00, bild: "https://i.otto.de/i/otto/f1541bd7-c1d5-459a-8468-498e47536365?h=520&w=551&sm=clamp&upscale=true&fmt=auto" },            
-	    { name: "Melonenschnaps", preis: 1.00, bild: "https://img.rewe-static.de/7055052/28189028_digital-image.png?imwidth=840&impolicy=pdp" }
+	        { name: "Aperol (Glas)", preis: 5.00, bild: "https://i.otto.de/i/otto/f1541bd7-c1d5-459a-8468-498e47536365?h=520&w=551&sm=clamp&upscale=true&fmt=auto" },            
+	        { name: "Melonenschnaps", preis: 1.00, bild: "https://img.rewe-static.de/7055052/28189028_digital-image.png?imwidth=840&impolicy=pdp" }
         ];
 
+        // Wir können die URL beibehalten, da der Fehler vom Server kommt, nicht von der URL.
         const API_URL = "https://script.google.com/macros/s/AKfycbxTQuIZglWTYeggmJWFHvrRk4UQAVY404L2Fd1V2pU8NcR4vvrD7wqkbgveHYZ1-DtY4w/exec";
         let warenkorb = [];
 
@@ -247,7 +248,7 @@
                     const entryDiv = document.createElement('div');
                 let typKlasse = item.typ.toLowerCase();
                 
-                // WICHTIG: Korrektur für "Getränk" -> "getraenk"
+                // Korrektur für "Getränk" -> "getraenk" für CSS-Klassen
                 if (typKlasse === 'getränk') {
                     typKlasse = 'getraenk'; 
                 }
@@ -294,14 +295,14 @@
             });
         }
 
-// --- BESTELLUNG ABSCHICKEN (Optimiert) ---
+// --- BESTELLUNG ABSCHICKEN (NEUER FIX MIT FormData) ---
 document.getElementById('ok-btn').onclick = () => {
     if (!warenkorb.length) return;
     document.getElementById('msg').innerText = "Bestellung wird gesendet...";
 
     const zeitstempel = new Date().toISOString();
     
-    // Die Daten für die gesamte Bestellung in einem Array zusammenfassen
+    // 1. Die Daten für die gesamte Bestellung in einem Array zusammenfassen
     const bestellungen = [];
     warenkorb.forEach(item => {
         for (let i = 0; i < item.anzahl; i++) {
@@ -314,36 +315,32 @@ document.getElementById('ok-btn').onclick = () => {
         }
     });
 
-    // Finaler Workaround gegen Pre-flight-Check: text/plain Header erzwingt eine "Simple Request"
+    // 2. NEUER FIX: Um das JSON-Array zuverlässig an Google Apps Script (GAS) zu senden,
+    // verwenden wir das standardmäßig von GAS unterstützte FormData-Format.
+    // Das JSON-Array wird in einem Feld namens 'data' verpackt.
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(bestellungen));
+    
+    // 3. WICHTIGE ÄNDERUNG: mode: 'no-cors' bleibt. Wir senden nun FormData,
+    // damit GAS die Daten über e.parameter.data lesen kann.
+    // Der 'Content-Type' Header MUSS entfernt werden.
     fetch(API_URL, {
         method: "POST",
         mode: "no-cors", 
-        body: JSON.stringify(bestellungen), 
-        // Beibehaltung des text/plain Headers ist oft notwendig
-        headers: { "Content-Type": "text/plain" } 
-    })
-    .then(response => {
-        if (!response.ok) {
-            // Fehlerbehandlung beibehalten
-            throw new Error("Server antwortete mit Fehlerstatus: " + response.status);
-        }
-        // WICHTIG: Erwartet JSON vom Apps Script
-        return response.json(); 
+        body: formData // Sende FormData statt rohem JSON
     })
     .then(() => {
-        document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${bestellungen.length} Einträge)`;
+        // Erfolg wird angenommen, da no-cors verwendet wird.
+        document.getElementById('msg').innerText = `Bestellung erfolgreich (Daten im 'data'-Parameter an Apps Script gesendet!)`;
         
-        // Warenkorb sofort nach EINER erfolgreichen Antwort leeren!
+        // Warenkorb leeren und UI aktualisieren
         warenkorb = [];
         renderOrder();
         updateButtons();
     })
     .catch((error) => { 
-        document.getElementById('msg').innerText = `Fehler beim Senden: ${error.message || 'Unbekannter Netzwerkfehler'}`;
-        // Bei Fehler: Warenkorb im Fehlerfall zur Sicherheit trotzdem leeren (könnte man anders entscheiden)
-        warenkorb = []; 
-        renderOrder();
-        updateButtons();
+        // Dieser Block fängt nur reine Netzwerkfehler ab.
+        document.getElementById('msg').innerText = `Fehler beim Senden (Netzwerkproblem): ${error.message}`;
     });
 };
 
@@ -360,6 +357,7 @@ document.getElementById('ok-btn').onclick = () => {
     </script>
 </body>
 </html>
+
 
 
 
