@@ -18,13 +18,13 @@
 
         /* Responsive Anpassung für die Button-Größen */
         .speisen-btn-wrapper {
-            width: 48%;
+            width: 100%; /* NEU: Muss 100% sein, um die Grid-Zelle auszufüllen */
             min-width: 100px;
 			height: 100%; /* NEU: Nimmt gesamte Zeilenhöhe ein */
         }
 
         .getraenk-btn-wrapper {
-            width: 23%;
+    		width: 100%; /* NEU: Muss 100% sein, um die Grid-Zelle auszufüllen */
             min-width: 100px;
 			height: 100%; /* NEU: Nimmt gesamte Zeilenhöhe ein */
         }
@@ -65,7 +65,7 @@
         <!-- Linke Spalte: Speisen -->
         <div class="lg:basis-[30%] p-4 rounded-xl shadow-xl bg-speise-bg">
             <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Speisen</h2>
-            <div class="flex flex-wrap justify-center gap-3 items-stretch" id="speisen"> 
+    		<div class="grid grid-cols-2 gap-3 items-stretch" id="speisen"> 
                 <!-- Speisen-Buttons werden hier eingefügt -->
             </div>
         </div>
@@ -73,7 +73,7 @@
         <!-- Mittlere Spalte: Getränke -->
         <div class="lg:basis-[50%] p-4 rounded-xl shadow-xl bg-getraenk-bg">
             <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Getränke</h2>
-            <div class="flex flex-wrap justify-center gap-3 items-stretch" id="getraenke">
+            <div class="grid grid-cols-4 gap-3 items-stretch" id="getraenke">
                 <!-- Getränke-Buttons werden hier eingefügt -->
             </div>
         </div>
