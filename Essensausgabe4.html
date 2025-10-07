@@ -1,0 +1,334 @@
+<Essensausgabe4.html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Essensausgabe Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for image size and fitting within the button */
+        .btn-img {
+            width: 100px; /* Kleinere, einheitliche Größe */
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive Anpassung für die Button-Größen */
+        .speisen-btn-wrapper {
+            width: 48%;
+            min-width: 120px;
+        }
+
+        .getraenk-btn-wrapper {
+            width: 23%;
+            min-width: 100px;
+        }
+
+        @media (max-width: 800px) {
+            .speisen-btn-wrapper, .getraenk-btn-wrapper {
+                width: 45%; /* Größer auf kleinen Bildschirmen */
+                min-width: 120px;
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Farben basierend auf den Original-Hintergründen
+                        'speise-bg': '#ffe0e0',
+                        'getraenk-bg': '#fffacd',
+                        'primary-blue': '#1295e0',
+                        'success-green': '#31e012',
+                        'active-green': '#0d6614',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans bg-gray-100 p-4 min-h-screen">
+    <h1 class="text-3xl font-extrabold text-gray-800 text-center mb-6">Essensausgabe Tracker</h1>
+    
+    <!-- Haupt-Layout (Responsive Grid/Flex) -->
+    <div class="flex flex-col lg:flex-row gap-4 max-w-7xl mx-auto">
+        
+        <!-- Linke Spalte: Speisen -->
+        <div class="lg:flex-1 p-4 rounded-xl shadow-xl bg-speise-bg">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Speisen</h2>
+            <div class="flex flex-wrap justify-center gap-3" id="speisen">
+                <!-- Speisen-Buttons werden hier eingefügt -->
+            </div>
+        </div>
+        
+        <!-- Mittlere Spalte: Getränke -->
+        <div class="lg:flex-1 p-4 rounded-xl shadow-xl bg-getraenk-bg">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Getränke</h2>
+            <div class="flex flex-wrap justify-center gap-3" id="getraenke">
+                <!-- Getränke-Buttons werden hier eingefügt -->
+            </div>
+        </div>
+        
+        <!-- Rechte Spalte: Checkout -->
+        <div class="lg:w-1/4 p-4 rounded-xl shadow-xl bg-white flex flex-col">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 text-center">Checkout</h2>
+            
+            <div id="grid-rechts-inner" class="flex flex-col md:flex-row lg:flex-col gap-4 flex-grow">
+                
+                <!-- Warenkorb (Order List) -->
+                <div id="order-list" style="display:none;" class="flex-1 p-4 rounded-lg shadow-inner bg-gray-50 border border-gray-200">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-2 text-gray-800">Warenkorb</h3>
+                    <div id="order-entries"></div>
+                    <div class="flex justify-between mt-4 pt-2 border-t border-gray-300 font-bold text-lg total">
+                        <span>Gesamt:</span>
+                        <span id="order-total"></span>
+                    </div>
+                </div>
+                
+                <!-- Aktionen (Action Buttons) -->
+                <div class="actions flex-1 flex flex-col items-center gap-2" style="display:none;" id="action-buttons">
+                    <button class="butn bg-primary-blue hover:bg-blue-600 transition w-full" id="ok-btn">
+                        OK - Bestellung abschicken
+                    </button>
+                    <button class="butn bg-red-600 hover:bg-red-700 transition w-full" id="abbruch-btn">
+                        Abbruch
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <div id="msg" class="mt-6 text-center text-lg font-medium text-green-600"></div>
+
+    <script>
+        const SPEISEN = [
+            { name: "Fleischkäse mit Kartoffelsalat", preis: 5.00, bild: "https://img.blick.ch/incoming/3970179-v5-thinkstockphotos-176899096.jpg?imdensity=1&ratio=free&x=0&y=0&width=1500&height=1014&imwidth=632" },
+            { name: "Fleischkäsebrötchen", preis: 4.00, bild: "https://baur.digitale-theke.com/wp-content/uploads/2021/11/Advent_Fleischkaesebroetchen.png" },
+            { name: "Obatzter mit Brezel", preis: 3.00, bild: "https://www.molkerei-weihenstephan.de/fileadmin/media/rezepte/salate_dips/obazda/obazda_quer.jpg" },
+            { name: "Weißwürste mit Brezel", preis: 3.00, bild: "https://www.piqza.de/wp-content/uploads/oktoberfest-weisswurst-brezel.jpg" },
+            { name: "Brezel", preis: 1.00, bild: "https://img1.kochrezepte.at/use/0/brezel_169.jpg" },
+            { name: "Knabbersachen (Chips, Salzstangen, Erdnüsse)", preis: 1.00, bild: "https://im.contentlounge.net/styles/manual_crop/s3/2022-05/imago_50029363-v1.jpg?im=AspectCrop%2Csize%3D%2816%2C9%29%2Cgravity%3DCenter%2CallowExpansion%2CBackgroundColor%2Ccolor%3Dtransparent&hash=f9747a58435e4ba4dd7fd81ae14c7d1a5353ee9fbe23c15dca29f6b6b144753a" }
+        ];
+
+        const GETRAENKE = [
+            { name: "Bier (Maß)", preis: 10.00, bild: "https://media01.stockfood.com/largepreviews/MjY1MzQ3NjA=/00855960-Eine-Mass-Bier-mit-Schaumkrone.jpg" },
+            { name: "Bier (0,4l)", preis: 4.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/cec04b/d8c134/f4616d/fb0a2f/fd7cea/8a/cec04bd8c134f4616dfb0a2ffd7cea8a.jpeg" },
+            { name: "Sekt (0,1l)", preis: 2.00, bild: "https://res.cloudinary.com/lusini/w_1500,h_1500,q_80,c_pad,f_auto/pim/15985a/f2f1c8/16cc01/262edf/58f908/27/15985af2f1c816cc01262edf58f90827.jpeg" },
+            { name: "Sekt (Flasche)", preis: 12.00, bild: "https://www.vinoseleccion.de/media/catalog/product/cache/6/image/9df78eab33525d08d6e5fb8d27136e95/c/a/cava-bach-brut-nature.jpg" },
+        	{ name: "Weinschorle (0,4l)", preis: 5.00, bild: "https://heidelmag.de/wp-content/uploads/2018/01/pfaelzer-weinschorle-dubbeglas-weissweinschorle-pfalz.jpg" },
+            { name: "Wasser (Flasche)", preis: 2.00, bild: "https://www.gdb.de/fileadmin/_processed_/5/0/csm_0_7_Glas_RGB_ddae298e82.jpg" },
+            { name: "Softdrinks (0,4l)", preis: 3.00, bild: "https://sbunion.shop/wp-content/uploads/2022/11/CocaColaGruppeNEU.png" },
+            { name: "Apfelschorle (0,4l)", preis: 3.00, bild: "https://cdn-vergleich.welt.de/v2/sites/11/apfelschorle-testsieger.jpeg?d=450x675&q=70" },
+	        { name: "Aperol (Glas)", preis: 5.00, bild: "https://i.otto.de/i/otto/f1541bd7-c1d5-459a-8468-498e47536365?h=520&w=551&sm=clamp&upscale=true&fmt=auto" },            
+	        { name: "Melonenschnaps", preis: 1.00, bild: "https://img.rewe-static.de/7055052/28189028_digital-image.png?imwidth=840&impolicy=pdp" }
+        ];
+        
+        // Da die Original-Bild-URLs von Drittanbietern kommen und CORS-Fehler verursachen können,
+        // wurden sie durch funktionierende Placeholder-URLs ersetzt.
+        const API_URL = "https://script.google.com/macros/s/AKfycbwlWst9-2K7IZHR702MwE7biAcZCqNXTgMlBb3ARFURoRU69ClPnga7OQgnN2DR1zzdfQ/exec";
+        let warenkorb = [];
+
+        // --- HILFSFUNKTIONEN ---
+
+        // Erzeugt die Buttons für Speisen und Getränke
+        function createButtons() {
+            const speisenDiv = document.getElementById('speisen');
+            const getraenkeDiv = document.getElementById('getraenke');
+
+            [
+                { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
+                { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
+            ].forEach(({ list, div, typ, btnType, wrapperClass }) => {
+                list.forEach((entry, idx) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `${wrapperClass} flex justify-center`; // Wrapper für Flex-Control
+
+                    const btn = document.createElement('button');
+                    btn.className = 'btn flex flex-col items-center justify-center p-2 rounded-lg shadow-md transition duration-150 relative cursor-pointer bg-primary-blue text-white w-full h-full text-xs hover:shadow-lg hover:brightness-110';
+                    btn.id = `${btnType}-btn-${idx}`;
+                    btn.innerHTML = `
+                        <img src="${entry.bild}" alt="${entry.name}" class="btn-img">
+                        <div class="btn-text text-center text-sm font-medium">
+                            ${entry.name}
+                            <div class="text-xs font-light mt-0.5">${entry.preis.toFixed(2)} €</div>
+                        </div>
+                        <div class="btn-count absolute -top-2 -right-2 bg-white text-gray-800 rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm shadow-md" style="display:none;">0</div>
+                    `;
+                    
+                    // Fügt das Produkt zum Warenkorb hinzu
+                    btn.onclick = () => addProdukt(entry, typ, idx, btnType);
+                    wrapper.appendChild(btn);
+                    div.appendChild(wrapper);
+                });
+            });
+        }
+
+        // Fügt ein Produkt zum Warenkorb hinzu oder erhöht die Anzahl
+        function addProdukt(entry, typ) {
+            const existingItem = warenkorb.find(item => item.name === entry.name && item.typ === typ);
+            if (existingItem) {
+                existingItem.anzahl += 1;
+            } else {
+                warenkorb.push({
+                    name: entry.name,
+                    preis: entry.preis,
+                    anzahl: 1,
+                    typ: typ
+                });
+            }
+            renderOrder();
+            updateButtons();
+        }
+
+        // Rendert den Warenkorb und aktualisiert die Gesamtpreisanzeige
+        function renderOrder() {
+            const orderListDiv = document.getElementById('order-list');
+            const entriesDiv = document.getElementById('order-entries');
+            const totalDiv = document.getElementById('order-total');
+            const actionDiv = document.getElementById('action-buttons');
+            entriesDiv.innerHTML = '';
+            const gesamtpreis = warenkorb.reduce((sum, item) => sum + (item.preis * item.anzahl), 0);
+            totalDiv.innerText = gesamtpreis.toFixed(2) + " €";
+            
+            if (warenkorb.length) {
+                orderListDiv.style.display = "";
+                actionDiv.style.display = "";
+
+                warenkorb.forEach(item => {
+                    const entryDiv = document.createElement('div');
+                    let typKlasse = item.typ.toLowerCase();
+                    
+                    // Korrektur für "Getränk" -> "getraenk" für CSS-Klassen
+                    if (typKlasse === 'getränk') {
+                        typKlasse = 'getraenk'; 
+                    }
+                    
+                    // Verwende Tailwind-Klassen für Hintergrund und Layout
+                    const bgClass = item.typ === 'Speise' ? 'bg-speise-bg' : 'bg-getraenk-bg';
+                    
+                    entryDiv.className = `entry flex justify-between p-2 rounded-md mb-1 text-sm ${bgClass}`;
+                    entryDiv.innerHTML = `
+                        <span>${item.name} <span class="font-semibold text-gray-600 ml-2">x${item.anzahl}</span></span>
+                        <span class="font-medium">${(item.preis * item.anzahl).toFixed(2)} €</span>
+                    `;
+                    entriesDiv.appendChild(entryDiv);
+                });
+            } else {
+                orderListDiv.style.display = "none";
+                actionDiv.style.display = "none";
+            }
+        }
+
+        // Aktualisiert die Anzeige der Mengen an den Speisen-/Getränke-Buttons
+        function updateButtons() {
+            const allItems = [...SPEISEN.map(s => ({...s, typ: 'Speise'})), ...GETRAENKE.map(g => ({...g, typ: 'Getränk'}))];
+
+            allItems.forEach((entry, idx) => {
+                const btnType = entry.typ === 'Speise' ? 'speise' : 'getraenk';
+                // Finde den Index im Original-Array (wichtig, da die Listen separat sind)
+                const originalList = entry.typ === 'Speise' ? SPEISEN : GETRAENKE;
+                const originalIdx = originalList.findIndex(item => item.name === entry.name);
+
+                if (originalIdx === -1) return; // Sollte nicht passieren
+
+                const btn = document.getElementById(`${btnType}-btn-${originalIdx}`);
+                if (!btn) return;
+
+                const countBadge = btn.querySelector('.btn-count');
+                const warenkorbItem = warenkorb.find(item => item.name === entry.name && item.typ === entry.typ);
+
+                // CSS Klassen Strings, die Leerzeichen enthalten (müssen getrennt werden)
+                const selectedClass = 'bg-success-green hover:bg-green-600';
+                const defaultClass = 'bg-primary-blue hover:bg-blue-600';
+
+                if (warenkorbItem && warenkorbItem.anzahl > 0) {
+                    countBadge.style.display = "flex";
+                    countBadge.innerText = warenkorbItem.anzahl;
+                    
+                    // FIX: Verwenden des Spread-Operators und split(' '), um mehrere Klassen korrekt zu entfernen/hinzuzufügen
+                    btn.classList.remove(...defaultClass.split(' '));
+                    btn.classList.add(...selectedClass.split(' '));
+                } else {
+                    countBadge.style.display = "none";
+                    
+                    // FIX: Verwenden des Spread-Operators und split(' '), um mehrere Klassen korrekt zu entfernen/hinzuzufügen
+                    btn.classList.remove(...selectedClass.split(' '));
+                    btn.classList.add(...defaultClass.split(' '));
+                }
+            });
+        }
+
+        // --- BESTELLUNG ABSCHICKEN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            createButtons();
+            renderOrder();
+            updateButtons();
+        });
+
+
+        document.getElementById('ok-btn').onclick = () => {
+            if (!warenkorb.length) return;
+            document.getElementById('msg').innerText = "Bestellung wird gesendet...";
+            document.getElementById('ok-btn').disabled = true;
+
+            const zeitstempel = new Date().toISOString();
+            
+            // 1. Die Daten für die gesamte Bestellung in einzelne Zeilen für das Google Sheet umwandeln
+            const bestellungen = [];
+            warenkorb.forEach(item => {
+                for (let i = 0; i < item.anzahl; i++) {
+                    bestellungen.push({
+                        zeitstempel,
+                        speise: item.name,
+                        preis: item.preis,
+                        kategorie: item.typ
+                    });
+                }
+            });
+
+            // 2. Erzeuge FormData und verpacke das JSON-Array im Feld 'data'
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(bestellungen));
+            
+            // 3. Führe den Fetch-Aufruf durch (no-cors ist notwendig für GAS)
+            fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                body: formData
+            })
+            .then(() => {
+                // Erfolg wird angenommen, da no-cors verwendet wird (Antwort ist undurchsichtig).
+                document.getElementById('msg').innerText = `Bestellung erfolgreich gesendet! (${bestellungen.length} Artikel)`;
+                
+                // Warenkorb leeren und UI aktualisieren
+                warenkorb = [];
+                renderOrder();
+                updateButtons();
+                document.getElementById('ok-btn').disabled = false;
+            })
+            .catch((error) => { 
+                // Dieser Block fängt nur reine Netzwerkfehler ab.
+                document.getElementById('msg').innerText = `Fehler beim Senden (Netzwerkproblem): ${error.message}`;
+                document.getElementById('ok-btn').disabled = false;
+            });
+        };
+
+        // --- BESTELLUNG ABBRECHEN ---
+        document.getElementById('abbruch-btn').onclick = () => {
+            warenkorb = [];
+            renderOrder();
+            updateButtons();
+            document.getElementById('msg').innerText = "Bestellung abgebrochen!";
+        };
+        
+    </script>
+</body>
+</html>
