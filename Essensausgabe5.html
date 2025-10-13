@@ -261,11 +261,16 @@ function createButtons() {
                 btn.classList.remove(...cacheEntry.defaultClass.split(' '));
                 btn.classList.add(...cacheEntry.selectedClass.split(' '));
             } else {
-                cacheEntry.badgeElement.style.display = "none";
+                // Button ist nicht ausgewählt oder Menge ist 0
                 
-                // Zurücksetzen der Klassen
-                btn.classList.remove(...cacheEntry.selectedClass.split(' '));
-                btn.classList.add(...cacheEntry.defaultClass.split(' '));
+                // 1. ROBUSTER ZUGRIFF UND PRÜFUNG: Sicherstellen, dass das Badge-Element existiert
+                if (cacheEntry.badgeElement) {
+                   cacheEntry.badgeElement.style.display = "none";
+                }
+                
+                // 2. Zurücksetzen der Klassen (Spread Operator ist hier kritisch)
+                btn.classList.remove(...cacheEntry.selectedClass.split(' ')); 
+                btn.classList.add(...cacheEntry.defaultClass.split(' '));  
             }
         });
 										 }						 
