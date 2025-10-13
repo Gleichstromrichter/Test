@@ -149,7 +149,7 @@ function createButtons() {
     // DIESES ARRAY IST WICHTIG UND MUSS UM DIE FOR-EACH SCHLEIFE SEIN!
     [
         { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
-        { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
+        { list: GETRAENKE, div: getraenkeDiv, typ: 'Getraenk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
     ].forEach(({ list, div, typ, btnType, wrapperClass }) => {
         list.forEach((entry, idx) => {
             const wrapper = document.createElement('div');
@@ -222,7 +222,7 @@ function createButtons() {
                     let typKlasse = item.typ.toLowerCase();
                     
                     // Korrektur für "Getränk" -> "getraenk" für CSS-Klassen
-                    if (typKlasse === 'getränk') {
+                    if (typKlasse === 'getraenk') {
                         typKlasse = 'getraenk'; 
                     }
                     
