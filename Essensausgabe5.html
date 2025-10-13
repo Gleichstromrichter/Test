@@ -148,7 +148,7 @@ function createButtons() {
     // WICHTIG: Das umschließende Array muss korrekt beginnen und enden
     [
         { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
-       { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
+       { list: GETRAENKE, div: getraenkeDiv, typ: 'Getraenk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
     ].forEach(({ list, div, typ, btnType, wrapperClass }) => { // HIER ENDET DAS ARRAY UND DIE ERSTE FOR-EACH BEGINNT
         list.forEach((entry, idx) => {
             const wrapper = document.createElement('div');
