@@ -261,7 +261,7 @@ function createButtons() {
                 btn.classList.remove(...cacheEntry.defaultClass.split(' '));
                 btn.classList.add(...cacheEntry.selectedClass.split(' '));
             } else {
-                countBadge.style.display = "none";
+                cacheEntry.badgeElement.style.display = "none";
                 
                 // Zurücksetzen der Klassen
                 btn.classList.remove(...cacheEntry.selectedClass.split(' '));
