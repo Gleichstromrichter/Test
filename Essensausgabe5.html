@@ -252,7 +252,12 @@ function createButtons() {
             const btn = cacheEntry.btnElement;
             const countBadge = cacheEntry.badgeElement;
             const warenkorbItem = warenkorbMap.get(key); // Schneller Lookup
-
+        
+        // *** HIER LIEGT DIE ULTIMATIVE LÖSUNG FÜR DIE PERFORMANCE ***
+        // Wir definieren die beiden Haupt-Hintergrundklassen neu:
+        const defaultBg = 'bg-primary-blue';
+        const selectedBg = 'bg-success-green';
+			
             if (warenkorbItem && warenkorbItem.anzahl > 0) {
                 countBadge.style.display = "flex";
                 countBadge.innerText = warenkorbItem.anzahl;
