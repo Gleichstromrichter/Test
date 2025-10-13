@@ -148,7 +148,7 @@ function createButtons() {
     // WICHTIG: Das umschließende Array muss korrekt beginnen und enden
     [
         { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
-        { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
+       { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
     ].forEach(({ list, div, typ, btnType, wrapperClass }) => { // HIER ENDET DAS ARRAY UND DIE ERSTE FOR-EACH BEGINNT
         list.forEach((entry, idx) => {
             const wrapper = document.createElement('div');
@@ -220,11 +220,7 @@ function createButtons() {
                     const entryDiv = document.createElement('div');
                     let typKlasse = item.typ.toLowerCase();
                     
-                    // Korrektur für "Getränk" -> "getraenk" für CSS-Klassen
-                    if (typKlasse === 'getränk') {
-                        typKlasse = 'getraenk'; 
-                    }
-                    
+                               
                     // Verwende Tailwind-Klassen für Hintergrund und Layout
                     const bgClass = item.typ === 'Speise' ? 'bg-speise-bg' : 'bg-getraenk-bg';
                     
