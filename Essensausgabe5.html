@@ -141,48 +141,50 @@
         // --- HILFSFUNKTIONEN ---
 
         // Erzeugt die Buttons für Speisen und Getränke
-        function createButtons() {
-            const speisenDiv = document.getElementById('speisen');
-            const getraenkeDiv = document.getElementById('getraenke');
+// Erzeugt die Buttons für Speisen und Getränke
+function createButtons() {
+    const speisenDiv = document.getElementById('speisen');
+    const getraenkeDiv = document.getElementById('getraenke');
 
-[
-            { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
-            { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
-        ].forEach(({ list, div, typ, btnType, wrapperClass }) => {
-            list.forEach((entry, idx) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = `${wrapperClass} flex justify-center`; 
+    // DIESES ARRAY IST WICHTIG UND MUSS UM DIE FOR-EACH SCHLEIFE SEIN!
+    [
+        { list: SPEISEN, div: speisenDiv, typ: 'Speise', btnType: 'speise', wrapperClass: 'speisen-btn-wrapper' },
+        { list: GETRAENKE, div: getraenkeDiv, typ: 'Getränk', btnType: 'getraenk', wrapperClass: 'getraenk-btn-wrapper' }
+    ].forEach(({ list, div, typ, btnType, wrapperClass }) => {
+        list.forEach((entry, idx) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = `${wrapperClass} flex justify-center`; // Wrapper für Flex-Control
 
-                const btn = document.createElement('button');
-                btn.className = 'btn flex flex-col items-center justify-center p-2 rounded-lg shadow-md transition duration-150 relative cursor-pointer bg-primary-blue text-white w-full h-full text-xs hover:shadow-lg hover:brightness-110';
-                btn.id = `${btnType}-btn-${idx}`;
-                btn.innerHTML = `
-                    <img src="${entry.bild}" alt="${entry.name}" class="btn-img">
-                    <div class="btn-text text-center text-sm font-medium">
-                        ${entry.name}
-                        <div class="text-xs font-light mt-0.5">${entry.preis.toFixed(2)} €</div>
-                    </div>
-                    <div class="btn-count absolute -top-2 -right-2 bg-white text-gray-800 rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm shadow-md" style="display:none;">0</div>
-                `;
-                
-                // 3. CACHING WURDE VERSCHOBEN (muss nach btn.innerHTML erfolgen)
-                const idKey = `${btnType}-${entry.name}`; // Eindeutiger Key
-                buttonCache[idKey] = {
-                    btnElement: btn,
-                    badgeElement: btn.querySelector('.btn-count'), // Sucht jetzt das Element
-                    name: entry.name, // Speichere den Namen für schnelle Suche
-                    typ: typ, // Speichere den Typ für schnelle Suche
-                    defaultClass: 'bg-primary-blue hover:bg-blue-600',
-                    selectedClass: 'bg-success-green hover:bg-green-600',
-                };
-                
-                // Fügt das Produkt zum Warenkorb hinzu
-                btn.onclick = () => addProdukt(entry, typ, idx, btnType);
-                wrapper.appendChild(btn);
-                div.appendChild(wrapper);
-                });
-            });
-        }
+            const btn = document.createElement('button');
+            btn.className = 'btn flex flex-col items-center justify-center p-2 rounded-lg shadow-md transition duration-150 relative cursor-pointer bg-primary-blue text-white w-full h-full text-xs hover:shadow-lg hover:brightness-110';
+            btn.id = `${btnType}-btn-${idx}`;
+            btn.innerHTML = `
+                <img src="${entry.bild}" alt="${entry.name}" class="btn-img">
+                <div class="btn-text text-center text-sm font-medium">
+                    ${entry.name}
+                    <div class="text-xs font-light mt-0.5">${entry.preis.toFixed(2)} €</div>
+                </div>
+                <div class="btn-count absolute -top-2 -right-2 bg-white text-gray-800 rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm shadow-md" style="display:none;">0</div>
+            `;
+            
+            // CACHING: Dieser Block ist nun korrekt platziert
+            const idKey = `${btnType}-${entry.name}`; 
+            buttonCache[idKey] = {
+                btnElement: btn,
+                badgeElement: btn.querySelector('.btn-count'), 
+                name: entry.name, 
+                typ: typ, 
+                defaultClass: 'bg-primary-blue hover:bg-blue-600',
+                selectedClass: 'bg-success-green hover:bg-green-600',
+            };
+            
+            // Fügt das Produkt zum Warenkorb hinzu
+            btn.onclick = () => addProdukt(entry, typ, idx, btnType);
+            wrapper.appendChild(btn);
+            div.appendChild(wrapper);
+        });
+    }); // WICHTIG: Die Klammern hier müssen geschlossen werden
+}
 
         // Fügt ein Produkt zum Warenkorb hinzu oder erhöht die Anzahl
         function addProdukt(entry, typ) {
