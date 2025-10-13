@@ -243,40 +243,7 @@
 
         // Aktualisiert die Anzeige der Mengen an den Speisen-/Getränke-Buttons
         function updateButtons() {
-            const allItems = [...SPEISEN.map(s => ({...s, typ: 'Speise'})), ...GETRAENKE.map(g => ({...g, typ: 'Getränk'}))];
-
-            allItems.forEach((entry, idx) => {
-                const btnType = entry.typ === 'Speise' ? 'speise' : 'getraenk';
-                // Finde den Index im Original-Array (wichtig, da die Listen separat sind)
-                const originalList = entry.typ === 'Speise' ? SPEISEN : GETRAENKE;
-                const originalIdx = originalList.findIndex(item => item.name === entry.name);
-
-                if (originalIdx === -1) return; // Sollte nicht passieren
-
-                const btn = document.getElementById(`${btnType}-btn-${originalIdx}`);
-                if (!btn) return;
-
-                const countBadge = btn.querySelector('.btn-count');
                 const warenkorbItem = warenkorb.find(item => item.name === entry.name && item.typ === entry.typ);
-
-                // CSS Klassen Strings, die Leerzeichen enthalten (müssen getrennt werden)
-                const selectedClass = 'bg-success-green hover:bg-green-600';
-                const defaultClass = 'bg-primary-blue hover:bg-blue-600';
-
-                if (warenkorbItem && warenkorbItem.anzahl > 0) {
-                    countBadge.style.display = "flex";
-                    countBadge.innerText = warenkorbItem.anzahl;
-                    
-                    // FIX: Verwenden des Spread-Operators und split(' '), um mehrere Klassen korrekt zu entfernen/hinzuzufügen
-                    btn.classList.remove(...defaultClass.split(' '));
-                    btn.classList.add(...selectedClass.split(' '));
-                } else {
-                    countBadge.style.display = "none";
-                    
-                    // FIX: Verwenden des Spread-Operators und split(' '), um mehrere Klassen korrekt zu entfernen/hinzuzufügen
-                    btn.classList.remove(...selectedClass.split(' '));
-                    btn.classList.add(...defaultClass.split(' '));
-                }
             });
         }
 
