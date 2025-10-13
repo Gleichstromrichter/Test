@@ -153,7 +153,19 @@
                     const wrapper = document.createElement('div');
                     wrapper.className = `${wrapperClass} flex justify-center`; // Wrapper für Flex-Control
 
-                    const btn = document.createElement('button');
+                    // ...
+                    const btn = document.createElement('button');
+                    // ...
+
+                    // CACHING: Speichere den Button und das Badge
+                    const idKey = `${btnType}-${entry.name}`; // Eindeutiger Key
+                    buttonCache[idKey] = {
+                        btnElement: btn,
+                        badgeElement: btn.querySelector('.btn-count'),
+                        defaultClass: 'bg-primary-blue hover:bg-blue-600',
+                        selectedClass: 'bg-success-green hover:bg-green-600',
+                    };
+					//...
                     btn.className = 'btn flex flex-col items-center justify-center p-2 rounded-lg shadow-md transition duration-150 relative cursor-pointer bg-primary-blue text-white w-full h-full text-xs hover:shadow-lg hover:brightness-110';
                     btn.id = `${btnType}-btn-${idx}`;
                     btn.innerHTML = `
